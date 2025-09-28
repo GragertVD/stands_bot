@@ -1,0 +1,96 @@
+services:
+  # Python приложение (продакшн)
+  python-app:
+    build: 
+      context: ./python-app
+      dockerfile: Dockerfile
+    container_name: python-app-prod
+    restart: unless-stopped
+    environment:
+      - PYTHONPATH=/app
+      - ENVIRONMENT=production
+    env_file:
+      - production.env
+    networks:
+      - app-network
+    depends_on:
+      - redis
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  # N8N (продакшн)
+  n8n:
+    image: n8nio/n8n:latest
+    container_name: n8n-prod
+    restart: unless-stopped
+    environment:
+      - N8N_BASIC_AUTH_ACTIVE=true
+      - N8N_BASIC_AUTH_USER=admin
+      - N8N_BASIC_AUTH_PASSWORD=SecureN8NPassword2024!
+      - N8N_HOST=gragert.ru
+      - N8N_PORT=443
+      - N8N_PROTOCOL=https
+      - N8N_PATH=/n8n/
+      - WEBHOOK_URL=https://gragert.ru/
+      - GENERIC_TIMEZONE=Europe/Moscow
+      - N8N_SECURE_COOKIE=true
+    volumes:
+      - ./n8n/data:/home/node/.n8n
+    networks:
+      - app-network
+    depends_on:
+      - redis
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  # Redis (продакшн)
+  redis:
+    image: redis:7-alpine
+    container_name: redis-prod
+    restart: unless-stopped
+    command: redis-server --requirepass StrongRedisPassword2024!
+    volumes:
+      - redis_data:/data
+    networks:
+      - app-network
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  # Nginx (продакшн SSL)
+  nginx:
+    image: nginx:alpine
+    container_name: nginx-prod
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/conf.d/production.conf:/etc/nginx/conf.d/default.conf
+      - ./nginx/ssl:/etc/nginx/ssl:ro
+    networks:
+      - app-network
+    depends_on:
+      - python-app
+      - n8n
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+networks:
+  app-network:
+    driver: bridge
+
+volumes:
+  redis_data:
+    driver: local

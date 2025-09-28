@@ -1,0 +1,60 @@
+# Файлы окружения
+.env
+.env.local
+.env.production
+
+# Продакшен конфигурация может содержать пароли
+# production.env остается как шаблон
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+.venv/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Логи
+*.log
+logs/
+
+# Docker
+.docker/
+
+# N8N данные
+n8n/data/
+
+# SSL сертификаты (в продакшене будут монтироваться отдельно)
+nginx/ssl/*.pem
+nginx/ssl/*.key
+nginx/ssl/*.crt
+nginx/ssl/*.csr
+nginx/ssl/*.p12
+
+# Исключения для документации
+!nginx/ssl/README.md
+
+# Временные файлы
+*.tmp
+*.temp
+.DS_Store
+Thumbs.db
+
+# База данных
+*.db
+*.sqlite
+*.sqlite3
+
+# Redis dump
+dump.rdb

@@ -1,0 +1,76 @@
+services:
+  # Python API приложение (почищенное)
+  python-app:
+    build: 
+      context: ./python-app
+      dockerfile: Dockerfile
+    container_name: python-app
+    restart: unless-stopped
+    volumes:
+      - ./python-app:/app
+    environment:
+      - PYTHONPATH=/app
+      - ENVIRONMENT=development
+    env_file:
+      - .env
+    networks:
+      - app-network
+    depends_on:
+      - redis
+
+  # N8N для автоматизации
+  n8n:
+    image: n8nio/n8n:latest
+    container_name: n8n
+    restart: unless-stopped
+    environment:
+      - N8N_BASIC_AUTH_ACTIVE=true
+      - N8N_BASIC_AUTH_USER=admin
+      - N8N_BASIC_AUTH_PASSWORD=password123
+      - N8N_HOST=localhost
+      - N8N_PORT=80
+      - N8N_PROTOCOL=http
+      - N8N_PATH=/n8n/
+      - WEBHOOK_URL=http://localhost/
+      - GENERIC_TIMEZONE=Europe/Moscow
+    volumes:
+      - ./n8n/data:/home/node/.n8n
+    networks:
+      - app-network
+    depends_on:
+      - redis
+
+  # Redis для обмена данными между сервисами
+  redis:
+    image: redis:7-alpine
+    container_name: redis
+    restart: unless-stopped
+    volumes:
+      - redis_data:/data
+    networks:
+      - app-network
+
+  # Nginx реверс-прокси для SSL
+  nginx:
+    image: nginx:alpine
+    container_name: nginx
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/conf.d:/etc/nginx/conf.d
+      - ./nginx/ssl:/etc/nginx/ssl
+    networks:
+      - app-network
+    depends_on:
+      - python-app
+      - n8n
+
+networks:
+  app-network:
+    driver: bridge
+
+volumes:
+  redis_data:
+    driver: local
