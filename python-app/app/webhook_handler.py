@@ -6,7 +6,7 @@ import logging
 import requests
 import json
 from datetime import datetime
-from typing import Dict, Any
+from typing import Dict, Any, List, Optional
 from pydantic import BaseModel
 
 from .config import Config
@@ -18,6 +18,7 @@ class IncomingWebhookMessage(BaseModel):
     chat_id: str
     message: str
     message_type: str = "text"
+    inline_keyboard_markup: Optional[Dict[str, Any]] = None  # JSON объект с клавиатурой VK Teams
 
 class WebhookHandler:
     """Обработчик webhooks для интеграции с N8N"""

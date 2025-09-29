@@ -2,6 +2,7 @@
 API Server - FastAPI приложение с интеграцией N8N
 Упрощенная версия с сохранением всей функциональности
 """
+import json
 import logging
 from datetime import datetime
 from typing import Optional, Dict, Any
@@ -49,9 +50,10 @@ class APIServer:
                 "n8n_integration": webhook_stats["n8n_webhook_configured"],
                 "endpoints": {
                     "health": "/health",
-                    "chats": "/chats",
-                    "webhook": "/api/webhook",
-                    "docs": "/docs"
+                     "chats": "/chats",
+                     "webhook": "/api/webhook",
+                     "send_message": "/api/send-message",
+                     "docs": "/docs"
                 },
                 "timestamp": datetime.now().isoformat()
             }
@@ -104,7 +106,7 @@ class APIServer:
         async def handle_incoming_webhook(message: IncomingWebhookMessage):
             """
             Принимать входящие сообщения от N8N
-            и отправлять их пользователю в VK Teams
+            и отправлять их пользователю в VK Teams с поддержкой кнопок
             """
             if not self.vk_bot_instance:
                 logger.error("❌ Бот не инициализирован")
@@ -121,8 +123,16 @@ class APIServer:
             if message.chat_id not in active_chats:
                 logger.warning(f"⚠️ Чат {message.chat_id} не найден в активных чатах")
 
-            # Отправить сообщение в VK Teams
-            success = self.vk_bot_instance.send_text(message.chat_id, message.message)
+            # Отправить сообщение в VK Teams (с кнопками или без)
+            keyboard_json = None
+            if message.inline_keyboard_markup:
+                keyboard_json = json.dumps(message.inline_keyboard_markup)
+            
+            success = self.vk_bot_instance.send_text(
+                message.chat_id, 
+                message.message, 
+                keyboard_json
+            )
 
             if success:
                 logger.info(f"✅ Webhook сообщение доставлено в чат {message.chat_id}")
@@ -160,6 +170,38 @@ class APIServer:
                 },
                 "timestamp": datetime.now().isoformat()
             }
+
+            @self.app.post("/api/send-message")
+            async def send_message_endpoint(request: Dict[str, Any]):
+                """
+                Отправить сообщение напрямую через API
+                Пример: {"chat_id": "user@vkteam.ru", "message": "Текст", "inline_keyboard_markup": {"inlineKeyboard": [...]}}
+                """
+                if not self.vk_bot_instance:
+                    raise HTTPException(status_code=500, detail="Bot not initialized")
+
+                chat_id = request.get("chat_id")
+                message = request.get("message")
+                inline_keyboard_markup = request.get("inline_keyboard_markup")
+
+                if not chat_id or not message:
+                    raise HTTPException(status_code=400, detail="chat_id and message are required")
+
+                try:
+                    keyboard_json = None
+                    if inline_keyboard_markup:
+                        keyboard_json = json.dumps(inline_keyboard_markup)
+                    
+                    success = self.vk_bot_instance.send_text(chat_id, message, keyboard_json)
+
+                    if success:
+                        return {"status": "success", "message": "Message sent"}
+                    else:
+                        raise HTTPException(status_code=500, detail="Failed to send message")
+
+                except Exception as e:
+                    logger.error(f"❌ Ошибка отправки сообщения: {e}")
+                    raise HTTPException(status_code=500, detail=str(e))
 
     def get_app(self) -> FastAPI:
         """Получить FastAPI приложение"""

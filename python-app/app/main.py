@@ -7,7 +7,7 @@ import threading
 import uvicorn
 
 from .config import Config
-from .bot import VKTeamsBot
+from .vk_teams_bot import VKTeamsBot
 from .webhook_handler import WebhookHandler
 from .api_server import APIServer
 
