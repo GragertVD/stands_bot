@@ -1,7 +1,7 @@
 services:
   # Python приложение (продакшн)
   python-app:
-    build: 
+    build:
       context: ./python-app
       dockerfile: Dockerfile
     container_name: python-app-prod
