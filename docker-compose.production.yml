@@ -1,7 +1,7 @@
 services:
   # Python приложение (продакшн)
   python-app:
-    build: 
+    build:
       context: ./python-app
       dockerfile: Dockerfile
     container_name: python-app-prod
@@ -31,10 +31,11 @@ services:
       - N8N_BASIC_AUTH_USER=admin
       - N8N_BASIC_AUTH_PASSWORD=SecureN8NPassword2024!
       - N8N_HOST=gragert.ru
-      - N8N_PORT=443
+      - N8N_PORT=5678
       - N8N_PROTOCOL=https
       - N8N_PATH=/n8n/
-      - WEBHOOK_URL=https://gragert.ru/
+      - WEBHOOK_URL=https://gragert.ru/webhook/
+      - N8N_EDITOR_BASE_URL=https://gragert.ru/n8n/
       - GENERIC_TIMEZONE=Europe/Moscow
       - N8N_SECURE_COOKIE=true
     volumes:
