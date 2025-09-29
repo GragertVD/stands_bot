@@ -43,10 +43,10 @@ dnf update -y
 
 ```bash
 # Ubuntu/Debian
-apt install -y curl wget git nano htop
+apt install -y curl wget git nano htop make
 
 # CentOS/RHEL  
-dnf install -y curl wget git nano htop
+dnf install -y curl wget git nano htop make
 ```
 
 ## 🐳 Шаг 2: Установка Docker
@@ -234,6 +234,19 @@ chown -R 1000:1000 n8n/data
 ```
 
 ### Сборка и запуск
+
+**Важно**: Убедитесь, что утилита `make` установлена (должна быть установлена на шаге 1). Если по каким-то причинам `make` не установлен, выполните:
+
+```bash
+# Если make не установлен, установите его:
+apt install -y make
+```
+
+Или выполните команду напрямую без make:
+```bash
+# Альтернатива команде make prod-build:
+docker-compose -f docker-compose.production.yml build --no-cache
+```
 
 ```bash
 # Собираем Docker образы

@@ -27,9 +27,6 @@ services:
     container_name: n8n-prod
     restart: unless-stopped
     environment:
-      - N8N_BASIC_AUTH_ACTIVE=true
-      - N8N_BASIC_AUTH_USER=admin
-      - N8N_BASIC_AUTH_PASSWORD=SecureN8NPassword2024!
       - N8N_HOST=gragert.ru
       - N8N_PORT=5678
       - N8N_PROTOCOL=https
