@@ -42,17 +42,26 @@ class WebhookHandler:
         try:
             # Подготавливаем структурированные данные для N8N
             payload = event_data.get('payload', {})
+            event_type = event_data.get('type', 'new_message')  # Используем реальный тип события
+            
+            # Извлекаем chat_id в зависимости от типа события
+            if event_type == 'callbackQuery':
+                chat_id = payload.get('message', {}).get('chat', {}).get('chatId', '')
+            else:
+                chat_id = payload.get('chat', {}).get('chatId', '')
+            
             webhook_data = {
                 "timestamp": datetime.now().isoformat(),
                 "source": "vk_teams",
-                "event_type": "new_message",
+                "event_type": event_type,
                 "data": {
                     "text": payload.get('text', ''),
-                    "chat_id": payload.get('chat', {}).get('chatId', ''),
+                    "chat_id": chat_id,
                     "user_name": f"{payload.get('from', {}).get('firstName', '')} {payload.get('from', {}).get('lastName', '')}".strip(),
                     "user_id": payload.get('from', {}).get('userId', ''),
                     "timestamp": payload.get('timestamp', 0),
-                    "msg_id": payload.get('msgId', '')
+                    "msg_id": payload.get('msgId', ''),
+                    "callback_data": payload.get('callbackData')  # Добавляем данные кнопки
                 }
             }
             
